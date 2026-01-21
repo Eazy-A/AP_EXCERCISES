@@ -105,7 +105,7 @@ class StopCoronaApp {
     private Map<User, Map<User, Integer>> countingMapForNearContacts;
 
     public StopCoronaApp() {
-        userMap = new HashMap<>();
+        userMap = new LinkedHashMap<>();
         countingMapForNearContacts = new TreeMap<>(Comparator.comparing(User::getTimeInfected).thenComparing(User::getId));
     }
 

@@ -1,4 +1,4 @@
-package e27;
+ package e27;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -11,21 +11,22 @@ class GenericCollection<T extends IHasTimestamp & Comparable<T>> {
     private final Map<String, Set<T>> elementMap = new TreeMap<>();
 
     public void addGenericItem(String category, T element) {
-        elementMap.computeIfAbsent(category, _ -> new LinkedHashSet<>()).add(element); // replace _ with k, for it to work in coderunner
+        elementMap.computeIfAbsent(category, _ -> new LinkedHashSet<>()).add(element);
+        // replace _ with k for it to work on coderunner
     }
 
     public Collection<T> findAllBetween(LocalDateTime from, LocalDateTime to) {
         return elementMap.values().stream()
                 .flatMap(Collection::stream)
                 .filter(t -> t.getTimestamp().isAfter(from)&&t.getTimestamp().isBefore(to))
-                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.reverseOrder())));
+                .collect(Collectors.toCollection(() -> new TreeSet<T>(Comparator.reverseOrder())));
     }
 
     public Collection<T> itemsFromCategories(List<String> categories) {
         return elementMap.keySet().stream()
                 .filter(categories::contains)
                 .flatMap(category -> elementMap.get(category).stream())
-                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.reverseOrder())));
+                .collect(Collectors.toCollection(() -> new TreeSet<T>(Comparator.reverseOrder())));
     }
 
     public Map<String, Set<T>> byMonthAndDay() {
@@ -34,7 +35,7 @@ class GenericCollection<T extends IHasTimestamp & Comparable<T>> {
                 .collect(Collectors.groupingBy(
                         element -> String.format("%02d-%02d", element.getTimestamp().getMonthValue(), element.getTimestamp().getDayOfMonth()),
                         TreeMap::new,
-                        Collectors.toCollection(() -> new TreeSet<>(Comparator.reverseOrder()))
+                        Collectors.toCollection(() -> new TreeSet<T>(Comparator.reverseOrder()))
                 ));
     }
 
@@ -251,6 +252,8 @@ public class GenericCollectionTest {
     }
 
     private static void printResultsFromCountByYear(GenericCollection<?> collection) {
-        collection.countByYear().forEach((key, value) -> System.out.println(key + " -> " + value));
+        collection.countByYear().forEach((key, value) -> {
+            System.out.println(key + " -> " + value);
+        });
     }
 }
