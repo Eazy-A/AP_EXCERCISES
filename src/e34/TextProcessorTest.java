@@ -80,7 +80,6 @@ class TextProcessor {  Map<String, Integer> allWordsMap;
                             wordsByDocumentsMaps.get(i).values(),
                             wordsByDocumentsMaps.get(j).values()
                     );
-                    //System.out.println(String.format("%d %d %.10f", i, j, sim));
                     if (sim>maxSimilarity) {
                         maxSimilarity = sim;
                         iMax = i;
