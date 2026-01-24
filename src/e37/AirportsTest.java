@@ -5,10 +5,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 class Airport {
-    private String name;
-    private String country;
-    private String code;
-    private int passengers;
+    private final String name;
+    private final String country;
+    private final String code;
+    private final int passengers;
 
     public Airport(String name, String country, String code, int passengers) {
         this.name = name;
@@ -40,10 +40,10 @@ class Airport {
 }
 
 class Flight {
-    private String from;
-    private String to;
-    private int time;
-    private int duration;
+    private final String from;
+    private final String to;
+    private final int time;
+    private final int duration;
 
     public Flight(String from, String to, int time, int duration) {
         this.from = from;
@@ -81,6 +81,7 @@ class Flight {
         return String.format("%02d:%02d-%02d:%02d%s %dh%02dm",
                 startHours, startMinutes, endHours, endMinutes, dayArrival, dH, dM);
     }
+
     @Override
     public String toString() {
         return String.format("%s-%s %s", from, to, calculatedTime());
@@ -88,8 +89,8 @@ class Flight {
 }
 
 class Airports {
-    private List<Airport> airportsList = new ArrayList<>();
-    private Set<Flight> flightSet = new TreeSet<>(Comparator.comparing(Flight::getTo).thenComparing(Flight::getTime).thenComparing(Flight::getFrom));
+    private final List<Airport> airportsList = new ArrayList<>();
+    private final Set<Flight> flightSet = new TreeSet<>(Comparator.comparing(Flight::getTo).thenComparing(Flight::getTime).thenComparing(Flight::getFrom));
 
     public void addAirport(String name, String country, String code, int passengers) {
         airportsList.add(new Airport(name, country, code, passengers));
