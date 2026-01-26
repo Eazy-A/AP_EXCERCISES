@@ -2,6 +2,7 @@ package vtor_kolokvium.stats;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class StatisticsService {
@@ -9,28 +10,56 @@ class StatisticsService {
     private long sum = 0;
     private Integer min = null;
     private Integer max = null;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public synchronized void addNumber(int number) {
-        count++;
-        sum += number;
-        if (min == null || min > number) min = number;
-        if (max == null || max < number) max = number;
+    public void addNumber(int number) {
+        lock.writeLock().lock();
+        try {
+            count++;
+            sum += number;
+            if (min == null || min > number) min = number;
+            if (max == null || max < number) max = number;
+        }finally {
+            lock.writeLock().unlock();
+        }
     }
 
-    public synchronized int getCount() {
+    public int getCount() {
+        lock.readLock().lock();
+        try{
         return count;
+        }finally {
+            lock.readLock().unlock();
+        }
     }
 
-    public synchronized Double getAverage() {
-        return count == 0 ? 0.0 : (double) sum / count;
+    public Double getAverage() {
+        lock.readLock().lock();
+        try {
+            return count == 0 ? 0.0 : (double) sum / count;
+        }finally {
+            {
+                lock.readLock().unlock();
+            }
+        }
     }
 
-    public synchronized Double getMin() {
-        return min == null ? 0.0 : min;
+    public Double getMin() {
+        lock.readLock().lock();
+        try {
+            return min == null ? 0.0 : min;
+        }finally {
+            lock.readLock().unlock();
+        }
     }
 
-    public synchronized Double getMax() {
-        return max == null ? 0.0 : max;
+    public Double getMax() {
+        lock.readLock().lock();
+        try {
+            return max == null ? 0.0 : max;
+        }finally {
+            lock.readLock().unlock();
+        }
     }
 }
 
@@ -44,7 +73,7 @@ class SubmitNumberTask implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
+    public String call() {
         service.addNumber(number);
         return String.format("NUMBER %d ADDED. Total numbers: %d", number, service.getCount());
     }
@@ -58,7 +87,7 @@ class GetAverageTask implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
+    public String call() {
         return String.format("AVERAGE: %.2f", service.getAverage());
     }
 }
@@ -71,7 +100,7 @@ class GetMinTask implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
+    public String call(){
         return String.format("MIN: %.2f", service.getMin());
     }
 }
@@ -84,7 +113,7 @@ class GetMaxTask implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
+    public String call() {
         return String.format("MAX: %.2f", service.getMax());
     }
 }

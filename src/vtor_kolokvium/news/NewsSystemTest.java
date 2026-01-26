@@ -93,10 +93,6 @@ class Article {
         return author;
     }
 
-    public String getContent() {
-        return content;
-    }
-
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
