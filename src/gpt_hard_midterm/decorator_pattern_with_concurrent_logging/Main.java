@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -29,10 +28,15 @@ abstract class LoggerDecorator implements Logger {
 
 // concrete component
 class BasicLogger implements Logger {
-
+    private static final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Override
     public void log(String message) {
-        System.out.println(message);
+        lock.writeLock().lock();
+        try {
+            System.out.println(message);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 }
 
@@ -65,7 +69,6 @@ class ThreadNameLogger extends LoggerDecorator {
 class LogTask implements Runnable {
     private final Logger logger;
     private final String message;
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public LogTask(Logger logger, String message) {
         this.logger = logger;
@@ -74,12 +77,7 @@ class LogTask implements Runnable {
 
     @Override
     public void run() {
-        lock.writeLock().lock();
-        try {
-            logger.log(message);
-        } finally {
-            lock.writeLock().unlock();
-        }
+       logger.log(message);
     }
 }
 public class Main {
