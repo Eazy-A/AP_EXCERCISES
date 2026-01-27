@@ -1,43 +1,58 @@
-Потребно е да се имплементира конкурентен сервис за чување на цели броеви и добивање (по потреба) статистики за веќе зачуваните броеви. Во исто време, сервисот може да го контактираат повеќе нишки и за запишување на нов број и за читање на некоја од можните статистики.
+За потребите на систем за управување со вести потребно е да се имплементира класа NewsSystem која ќе претставува централен пристап до функционалностите на системот.
 
-Да се имплементира класа StatisticsService која ќе управува со цели броеви и ќе нуди методи за додавање на нов цел број во колекцијата, како и методи за добивање на бројот, минимумот, максимумот и просечната вредност на броевите во колекцијата.
-Од оваа класа е креиран само еден објект во main функцијата и истиот тој објект се користи од сите задачи.
+Во класата NewsSystem задолжително треба да се имплементираат следните методи:
 
-Да се дефинираат класи (за задачи кои ќе се извршуваат конкурентно) кои ќе го имплементираат интерфејсот Callable<String>:
+public NewsSystem(List<String> categoryNames, List<String> authorNames)
+Конструктор кој врши иницијализација на системот со достапните категории и автори.
 
-SubmitNumberTask – задача која ќе додаде еден нов број во сервисот (StatisticsService), а како резултат ќе врати стринг со опис на извршената операција
-(NUMBER %d ADDED. Total numbers: %d)
+листа од имиња на категории
 
-GetAverageTask – задача која ќе го извлече просекот на додадените броеви од сервисот, а како резултат ќе врати стринг со опис на извршената операција
-(AVERAGE: %.2f)
+листа од имиња на автори
 
-GetMinTask – задача која ќе го извлече минимумот на додадените броеви од сервисот, а како резултат ќе врати стринг со опис на извршената операција
-(MIN: %.2f)
+public void addUser(String username) - Метод за додавање на нов корисник во системот.
 
-GetMaxTask – задача која ќе го извлече максимумот на додадените броеви од сервисот, а како резултат ќе врати стринг со опис на извршената операција
-(MAX: %.2f)
+public void subscribeUserToCategory(String username, String categoryName) - Метод со кој корисник се пријавува на следење на вести од определена категорија.
 
-Да се имплементира класа ConcurrentService со единствен статички метод submitAll кој прима два аргументи: број на нишки кои може да се користат и листа на Callable<String> објекти. Методот треба да ги изврши сите callable задачи на ExecutorService со определениот број на нишки, а да врати листа од сите идни резултати.
+public void unsubscribeUserFromCategory(String username, String categoryName) - Метод со кој корисник се одјавува од следење на вести од определена категорија.
 
----
+public void subscribeUserToAuthor(String username, String authorName) - Метод со кој корисник се пријавува на следење на вести од определен автор.
 
-It is required to implement a concurrent service for storing integers and obtaining (when needed) statistics for the already stored numbers. At the same time, the service can be accessed by multiple threads, both for writing a new number and for reading one of the available statistics.
+public void unsubscribeUserFromAuthor(String username, String authorName) - Метод со кој корисник се одјавува од следење на вести од определен автор.
 
-Implement a class StatisticsService that manages integer values and provides methods for adding a new integer to the collection, as well as methods for obtaining the count, minimum, maximum, and average value of the numbers in the collection.
-Only one object of this class is created in the main function, and that same object is used by all tasks.
+public void publishArticle(Article article) - Метод за објавување на нова вест во системот.
 
-Define classes (for tasks that will be executed concurrently) that implement the Callable<String> interface:
+public void printNewsForUser(String username) - Метод кој ги печати сите вести што ги има добиено корисникот со даденото корисничко име, сортирани според времето на објавата во растечки редослед.
 
-SubmitNumberTask – a task that adds a new number to the service (StatisticsService) and returns a string describing the performed operation as a result
-(NUMBER %d ADDED. Total numbers: %d)
+--
 
-GetAverageTask – a task that retrieves the average of the added numbers from the service and returns a string describing the performed operation as a result
-(AVERAGE: %.2f)
+For the needs of a news management system, it is required to implement a class NewsSystem that represents a central access point to the system’s functionality.
 
-GetMinTask – a task that retrieves the minimum of the added numbers from the service and returns a string describing the performed operation as a result
-(MIN: %.2f)
+Within the NewsSystem class, the following methods must be implemented:
 
-GetMaxTask – a task that retrieves the maximum of the added numbers from the service and returns a string describing the performed operation as a result
-(MAX: %.2f)
+public NewsSystem(List<String> categoryNames, List<String> authorNames)
+Constructor that initializes the system with the available categories and authors.
 
-Implement a class ConcurrentService with a single static method submitAll that takes two arguments: the number of threads that can be used and a list of Callable<String> objects. The method should execute all callable tasks using an ExecutorService with the specified number of threads and return a list of all future results.
+a list of category names
+
+a list of author names
+
+public void addUser(String username)
+Method for adding a new user to the system.
+
+public void subscribeUserToCategory(String username, String categoryName)
+Method by which a user subscribes to receive news from a specific category.
+
+public void unsubscribeUserFromCategory(String username, String categoryName)
+Method by which a user unsubscribes from receiving news from a specific category.
+
+public void subscribeUserToAuthor(String username, String authorName)
+Method by which a user subscribes to receive news from a specific author.
+
+public void unsubscribeUserFromAuthor(String username, String authorName)
+Method by which a user unsubscribes from receiving news from a specific author.
+
+public void publishArticle(Article article)
+Method for publishing a new article in the system.
+
+public void printNewsForUser(String username)
+Method that prints all news received by the user with the given username, sorted by publication time in ascending order.
