@@ -1,0 +1,29 @@
+Да се имплементира класа Bucket за репрезентација на „кофа“ за складирање на објекти во облак. Секој објект е дефиниран со клуч (пр. photos/2024/12/image.jpg). Клучот на објектот е составен од префикс (photos/2024/12) и име на објектот/датотеката (пр. image.jpg). Префиксот дефинира логичка структура на директориуми и поддиректориуми во кои се наоѓа објектот.
+
+За класата да се имплементираат:
+
+конструктор Bucket(String name)
+
+метод void addObject(String key) – метод за додавање на нов објект во кофата со клуч key. При додавање, објектите со заеднички префикси се групираат (погледнете ги тест примерите).
+
+метод void removeObject(String key) – метод за бришење на постоечки објект од кофата со клуч key
+
+При бришење на постоечки објект, да се направи чистење и на префиксите за тој објект (односно да не се оставаат префикси во кофата без датотеки во нив)
+
+метод String toString() – кој ќе ги испечати информациите за сите објекти во кофата. Да се користи вовлекување при печатење на објектите кои имаат префикс составен од повеќе делови одделени со /.
+
+---
+
+Implement a class Bucket that represents a “bucket” for storing objects in the cloud. Each object is defined by a key (e.g., photos/2024/12/image.jpg). The object key consists of a prefix (photos/2024/12) and the object/file name (e.g., image.jpg). The prefix defines a logical directory and subdirectory structure in which the object is located.
+
+For the class, implement the following:
+
+constructor Bucket(String name)
+
+method void addObject(String key) – adds a new object to the bucket with the given key. When adding objects, objects with the same prefixes are grouped (see example test cases)
+
+method void removeObject(String key) – removes an existing object from the bucket with the given key
+
+When removing an object, the corresponding prefixes must also be cleaned up (i.e., no prefixes without files should remain in the bucket)
+
+method String toString() – prints information about all objects in the bucket. Indentation should be used when printing objects whose prefixes contain several parts delimited by /.

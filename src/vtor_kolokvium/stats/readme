@@ -1,0 +1,58 @@
+За потребите на систем за управување со вести потребно е да се имплементира класа NewsSystem која ќе претставува централен пристап до функционалностите на системот.
+
+Во класата NewsSystem задолжително треба да се имплементираат следните методи:
+
+public NewsSystem(List<String> categoryNames, List<String> authorNames)
+Конструктор кој врши иницијализација на системот со достапните категории и автори.
+
+листа од имиња на категории
+
+листа од имиња на автори
+
+public void addUser(String username) - Метод за додавање на нов корисник во системот.
+
+public void subscribeUserToCategory(String username, String categoryName) - Метод со кој корисник се пријавува на следење на вести од определена категорија.
+
+public void unsubscribeUserFromCategory(String username, String categoryName) - Метод со кој корисник се одјавува од следење на вести од определена категорија.
+
+public void subscribeUserToAuthor(String username, String authorName) - Метод со кој корисник се пријавува на следење на вести од определен автор.
+
+public void unsubscribeUserFromAuthor(String username, String authorName) - Метод со кој корисник се одјавува од следење на вести од определен автор.
+
+public void publishArticle(Article article) - Метод за објавување на нова вест во системот.
+
+public void printNewsForUser(String username) - Метод кој ги печати сите вести што ги има добиено корисникот со даденото корисничко име, сортирани според времето на објавата во растечки редослед.
+
+--
+
+For the needs of a news management system, it is required to implement a class NewsSystem that represents a central access point to the system’s functionality.
+
+Within the NewsSystem class, the following methods must be implemented:
+
+public NewsSystem(List<String> categoryNames, List<String> authorNames)
+Constructor that initializes the system with the available categories and authors.
+
+a list of category names
+
+a list of author names
+
+public void addUser(String username)
+Method for adding a new user to the system.
+
+public void subscribeUserToCategory(String username, String categoryName)
+Method by which a user subscribes to receive news from a specific category.
+
+public void unsubscribeUserFromCategory(String username, String categoryName)
+Method by which a user unsubscribes from receiving news from a specific category.
+
+public void subscribeUserToAuthor(String username, String authorName)
+Method by which a user subscribes to receive news from a specific author.
+
+public void unsubscribeUserFromAuthor(String username, String authorName)
+Method by which a user unsubscribes from receiving news from a specific author.
+
+public void publishArticle(Article article)
+Method for publishing a new article in the system.
+
+public void printNewsForUser(String username)
+Method that prints all news received by the user with the given username, sorted by publication time in ascending order.
