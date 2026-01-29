@@ -26,7 +26,7 @@ interface ITask {
 }
 
 class SimpleTask implements ITask {
-    private String category, name, description;
+    private final String category, name, description;
 
     public SimpleTask(String category, String name, String description) {
         this.category = category;
@@ -83,7 +83,7 @@ abstract class TaskDecorator implements ITask{
 }
 
 class PriorityDecorator extends TaskDecorator{
-    private int priority;
+    private final int priority;
 
     public PriorityDecorator(ITask wrapped, int priority) {
         super(wrapped);
@@ -105,7 +105,7 @@ class PriorityDecorator extends TaskDecorator{
     }
 }
 class DeadlineDecorator extends TaskDecorator{
-    private LocalDateTime deadline;
+    private final LocalDateTime deadline;
 
     public DeadlineDecorator(ITask wrapped, LocalDateTime deadline) {
         super(wrapped);
@@ -149,9 +149,9 @@ class TaskFactory {
 }
 
 class TaskManager {
-    private List<ITask> tasks = new ArrayList<>();
+    private final List<ITask> tasks = new ArrayList<>();
 
-    public void readTasks(InputStream inputStream) throws DeadlineNotValidException {
+    public void readTasks(InputStream inputStream){
         Scanner scanner = new Scanner(inputStream);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();

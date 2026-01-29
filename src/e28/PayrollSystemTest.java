@@ -176,7 +176,6 @@ class PayrollSystem {
     }
 
     public Map<String, Set<Employee>> printEmployeesByLevels(OutputStream os, Set<String> levels) {
-
         Map<String, Set<Employee>> groupedSorted = employeeList.stream()
                 .filter(e -> levels.contains(e.getLevel()))
                 .sorted(Comparator.comparingDouble(this::getSalaryForEmployee)
