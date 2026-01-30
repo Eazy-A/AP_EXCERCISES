@@ -3,14 +3,10 @@ package e17;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 class AmountNotAllowedException extends Exception {
     public AmountNotAllowedException(double amount) {
-//        Receipt with amount [сума на сите артикли] is not allowed to be scanned
         super(String.format("Receipt with amount %.0f is not allowed to be scanned", amount));
     }
 }
@@ -58,15 +54,15 @@ class TaxFactory {
 }
 
 class Item {
-    private double price;
-    private Tax taxType;
+    private final int price;
+    private final Tax taxType;
 
-    public Item(Tax taxType, double price) {
+    public Item(Tax taxType, int price) {
         this.taxType = taxType;
         this.price = price;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
@@ -76,8 +72,8 @@ class Item {
 }
 
 class Receipt {
-    private String id;
-    private List<Item> itemList = new ArrayList<>();
+    private final String id;
+    private final List<Item> itemList = new ArrayList<>();
 
     public Receipt(String id) {
         this.id = id;
@@ -87,9 +83,9 @@ class Receipt {
         itemList.add(item);
     }
 
-    public double sumAmounts() {
+    public int sumAmounts() {
         return itemList.stream()
-                .mapToDouble(Item::getPrice)
+                .mapToInt(Item::getPrice)
                 .sum();
     }
 
@@ -103,20 +99,13 @@ class Receipt {
 
     @Override
     public String toString() {
-//        ID SUM_OF_AMOUNTS TAX_RETURN
-        return String.format("%10s\t%10.0f\t%10.5f", id, sumAmounts(), taxReturn());
-    }
-
-    public List<Item> getItemList() {
-        return itemList;
+        return String.format("%10s\t%10d\t%10.5f", this.id, sumAmounts(), taxReturn());
     }
 }
 
 class MojDDV {
-    private List<Receipt> receiptList = new ArrayList<>();
-
+    private final List<Receipt> receiptList = new ArrayList<>();
     public void readRecords(InputStream inputStream) {
-//        ID item_price1 item_tax_type1 item_price2 item_tax_type2 … item_price-n item_tax_type-n
         Scanner scanner = new Scanner(inputStream);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
@@ -125,7 +114,7 @@ class MojDDV {
                 String id = words[0];
                 Receipt receipt = new Receipt(id);
                 for (int i = 1; i < words.length; i += 2) {
-                    double price = Double.parseDouble(words[i]);
+                    int price = Integer.parseInt(words[i]);
                     String taxType = words[i + 1];
                     receipt.addItem(new Item(TaxFactory.getTax(taxType), price));
                 }
@@ -145,42 +134,16 @@ class MojDDV {
         pw.flush();
 
     }
-
+    private DoubleSummaryStatistics statistics(){
+        return receiptList.stream()
+                .mapToDouble(Receipt::taxReturn)
+                .summaryStatistics();
+    }
     public void printStatistics(OutputStream outputStream) {
-//         min: MIN max: MAX sum: SUM count: COUNT average: AVERAGE
         PrintWriter pw = new PrintWriter(outputStream);
-        pw.printf("min:%9.3f\nmax:%10.3f\nsum:%10.3f\ncount:%2d\navg:%9.3f", min(), max(), sum(),count(), average());
+        pw.printf("min:\t%05.03f\nmax:\t%05.03f\nsum:\t%05.03f\ncount:\t%-5d\navg:\t%05.03f"
+                , statistics().getMin(), statistics().getMax(), statistics().getSum(),statistics().getCount(), statistics().getAverage());
         pw.flush();
-    }
-
-    public double min() {
-        return receiptList.stream()
-                .mapToDouble(Receipt::taxReturn)
-                .min()
-                .orElse(0);
-    }
-
-    public double max() {
-        return receiptList.stream()
-                .mapToDouble(Receipt::taxReturn)
-                .max()
-                .orElse(0);
-    }
-
-    public double sum() {
-        return receiptList.stream()
-                .mapToDouble(Receipt::taxReturn)
-                .sum();
-    }
-    public int count(){
-        return receiptList.size();
-    }
-
-    public double average() {
-        return receiptList.stream()
-                .mapToDouble(Receipt::taxReturn)
-                .average()
-                .orElse(0);
     }
 
 }
