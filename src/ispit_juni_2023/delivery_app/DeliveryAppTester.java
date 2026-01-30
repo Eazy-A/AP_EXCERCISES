@@ -2,27 +2,15 @@ package ispit_juni_2023.delivery_app;
 
 import java.util.*;
 
-
 class DeliveryPerson {
-    private String id;
-    private String name;
+    private final String id, name;
     private Location currentLocation;
-    private int totalDeliveries = 0;
-    private float earning = 0;
-    private float totalDeliveryFees = 0;
+    private final DoubleSummaryStatistics deliveries = new DoubleSummaryStatistics();
 
     public DeliveryPerson(String id, String name, Location currentLocation) {
         this.id = id;
         this.name = name;
         this.currentLocation = currentLocation;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public Location getCurrentLocation() {
@@ -33,67 +21,35 @@ class DeliveryPerson {
         this.currentLocation = currentLocation;
     }
 
-    public void addEarning(float cost) {
-        earning += cost;
-        totalDeliveries++;
+    public void addEarning(double earning) {
+        deliveries.accept(earning);
     }
 
-    public void addDeliveryFee(float fee) {
-        totalDeliveryFees += fee;
+    public double getEarnings() {
+        return deliveries.getSum();
+    }
+    public long getNumDeliveries(){
+        return deliveries.getCount();
+    }
+    public int distanceToLocation(Location location){
+        return currentLocation.distance(location);
     }
 
-    public float averageDeliveryFee() {
-        if (totalDeliveries == 0 || totalDeliveryFees == 0) return 0;
-        return totalDeliveryFees / totalDeliveries;
-    }
-
-    public float getEarning() {
-        return earning;
-    }
-
-    public int getTotalDeliveries() {
-        return totalDeliveries;
+    public String getId() {
+        return id;
     }
 
     @Override
     public String toString() {
-//        ID: 2 Name: Riste Total deliveries: 1 Total delivery fee: 90.00 Average delivery fee: 90.00
         return String.format("ID: %s Name: %s Total deliveries: %d Total delivery fee: %.2f Average delivery fee: %.2f",
-                id, name, totalDeliveries,totalDeliveryFees, averageDeliveryFee());
-    }
-}
-
-class Delivery {
-    private String name;
-    private float cost;
-
-    public Delivery(String name, float cost) {
-        this.name = name;
-        this.cost = cost;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public float getCost() {
-        return cost;
-    }
-
-    @Override
-    public String toString() {
-        return "Delivery{" +
-                "name='" + name + '\'' +
-                ", cost=" + cost +
-                '}';
+                id, name, deliveries.getCount(), deliveries.getSum(),deliveries.getAverage());
     }
 }
 
 class Restaurant {
-    private String id;
-    private String name;
-    private Location location;
-    private List<Delivery> deliveryList = new ArrayList<>();
+    private final String id, name;
+    private final Location location;
+    private final DoubleSummaryStatistics orders = new DoubleSummaryStatistics();
 
     public Restaurant(String id, String name, Location location) {
         this.id = id;
@@ -101,201 +57,130 @@ class Restaurant {
         this.location = location;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
     public Location getLocation() {
         return location;
     }
 
-    public void addDelivery(Delivery delivery) {
-        deliveryList.add(delivery);
+    public void addOrder(double order) {
+        orders.accept(order);
     }
 
-    public float averagePrice() {
-        return (float) deliveryList.stream()
-                .mapToDouble(Delivery::getCost)
-                .average()
-                .orElse(0);
-    }
-
-    public float totalEarned() {
-        return (float) deliveryList.stream()
-                .mapToDouble(Delivery::getCost)
-                .sum();
+    public double averageOrderPrice() {
+        return orders.getAverage();
     }
 
     @Override
     public String toString() {
-//        ID: 1 Name: Morino Total orders: 1 Total amount earned: 450.00 Average amount earned: 450.00
         return String.format("ID: %s Name: %s Total orders: %d Total amount earned: %.2f Average amount earned: %.2f",
-                id, name, deliveryList.size(), totalEarned(), averagePrice());
+                id, name, orders.getCount(), orders.getSum(),orders.getAverage());
+    }
+
+    public String getId() {
+        return id;
     }
 }
 
 class User {
-    private String id;
-    private String name;
-    private List<Address> addressList = new ArrayList<>();
-    private float spent = 0;
-    private int totalOrders = 0;
+    private final String id, name;
+    private final Map<String, Location> addresses = new LinkedHashMap<>();
+    private final DoubleSummaryStatistics orders = new DoubleSummaryStatistics();
 
     public User(String id, String name) {
         this.id = id;
         this.name = name;
     }
 
+    public void addAddress(String addressName, Location location) {
+        addresses.putIfAbsent(addressName, location);
+    }
+
+    public Map<String, Location> getAddresses() {
+        return addresses;
+    }
+
+    public void addSpent(double spent) {
+        orders.accept(spent);
+
+    }
+
+    public double getSpent() {
+        return orders.getSum();
+    }
+
     public String getId() {
         return id;
     }
 
-    public void addAddress(String name, Location location) {
-        addressList.add(new Address(name, location));
-    }
-
-    public List<Address> getAddressList() {
-        return addressList;
-    }
-
-    public void addSpent(float spent) {
-        this.spent += spent;
-        totalOrders++;
-    }
-
-    public float getSpent() {
-        return spent;
-    }
-
-    public float averageSpent() {
-        if(spent == 0 || totalOrders == 0) return 0;
-        return spent / totalOrders;
-    }
-
     @Override
     public String toString() {
-//        ID: 1 Name: stefan Total orders: 1 Total amount spent: 450.00 Average amount spent: 450.00
         return String.format("ID: %s Name: %s Total orders: %d Total amount spent: %.2f Average amount spent: %.2f",
-                id, name, totalOrders, spent, averageSpent());
+                id, name, orders.getCount(), orders.getSum(), orders.getAverage());
     }
 }
 
 class DeliveryApp {
-    private String name;
-    private List<DeliveryPerson> deliveryPersonList = new ArrayList<>();
-    private List<Restaurant> restaurantList = new ArrayList<>();
-    private List<User> userList = new ArrayList<>();
+    private final String name;
+    private final Map<String, DeliveryPerson> deliveryPeople = new LinkedHashMap<>();
+    private final Map<String, Restaurant> restaurants = new LinkedHashMap<>();
+    private final Map<String, User> users = new TreeMap<>();
 
     public DeliveryApp(String name) {
         this.name = name;
     }
 
     public void registerDeliveryPerson(String id, String name, Location currentLocation) {
-        deliveryPersonList.add(new DeliveryPerson(id, name, currentLocation));
+        deliveryPeople.putIfAbsent(id, new DeliveryPerson(id, name, currentLocation));
     }
 
     public void addRestaurant(String id, String name, Location location) {
-        restaurantList.add(new Restaurant(id, name, location));
+        restaurants.putIfAbsent(id, new Restaurant(id, name, location));
     }
 
     public void addUser(String id, String name) {
-        userList.add(new User(id, name));
+        users.putIfAbsent(id, new User(id, name));
     }
 
     public void addAddress(String id, String addressName, Location location) {
-        userList.stream()
-                .filter(user -> user.getId().equals(id))
-                .limit(1)
-                .forEach(user -> user.addAddress(addressName, location));
+        users.get(id).addAddress(addressName, location);
     }
 
     public void orderFood(String userId, String userAddressName, String restaurantId, float cost) {
-        int min = Integer.MAX_VALUE;
-        User recipientUser = userList.stream()
-                .filter(user -> user.getId().equals(userId))
-                .findFirst()
+        User user = users.get(userId);
+        Restaurant restaurant = restaurants.get(restaurantId);
+
+        DeliveryPerson deliveryPerson = deliveryPeople.values().stream()
+                .min(Comparator.<DeliveryPerson>comparingInt(d -> d.distanceToLocation(restaurant.getLocation()))
+                        .thenComparingLong(DeliveryPerson::getNumDeliveries)
+                        .thenComparing(DeliveryPerson::getId))
                 .orElseThrow();
 
-        Location userLocation = recipientUser.getAddressList()
-                .stream()
-                .filter(a -> a.getName().equals(userAddressName))
-                .map(Address::getLocation)
-                .findFirst()
-                .orElseThrow();
 
-        Restaurant recipientRestaurant = restaurantList.stream()
-                .filter(restaurant -> restaurant.getId().equals(restaurantId))
-                .findFirst()
-                .orElseThrow();
+        double deliveryDistance = restaurant.getLocation().distance(user.getAddresses().get(userAddressName));
 
-        DeliveryPerson closestDeliveryPerson = null;
+        double totalPay = 90 + 10 * Math.floor(deliveryDistance / 10);
+        user.addSpent(cost);
+        restaurant.addOrder(cost);
+        deliveryPerson.addEarning(totalPay);
 
-        Delivery delivery = new Delivery(" ", cost);
-        recipientRestaurant.addDelivery(delivery);
-
-        for (DeliveryPerson d : deliveryPersonList) {
-            int distance = d.getCurrentLocation().distance(recipientRestaurant.getLocation());
-            if (distance < min) {
-                min = distance;
-                closestDeliveryPerson = d;
-            }
-            else if(distance == min){
-                assert closestDeliveryPerson != null;
-                if (closestDeliveryPerson.getTotalDeliveries()> d.getTotalDeliveries()){
-                    closestDeliveryPerson = d;
-                }
-            }
-        }
-        if (closestDeliveryPerson != null) {
-            int distance = closestDeliveryPerson.getCurrentLocation().distance(recipientRestaurant.getLocation());
-            closestDeliveryPerson.setCurrentLocation(userLocation);
-            float deliveryFee = (distance / 10) * 10;
-            float earning = 90 + deliveryFee;
-            closestDeliveryPerson.addEarning(earning);
-            closestDeliveryPerson.addDeliveryFee(earning);
-        }
-        recipientUser.addSpent(cost);
+        deliveryPerson.setCurrentLocation(user.getAddresses().get(userAddressName));
     }
 
     public void printUsers() {
-        userList.stream()
-                .sorted(Comparator.comparing(User::getSpent).reversed())
+        users.values().stream()
+                .sorted(Comparator.comparing(User::getSpent).thenComparing(User::getId).reversed())
                 .forEach(System.out::println);
-
     }
 
     public void printRestaurants() {
-        restaurantList.stream()
-                .sorted(Comparator.comparing(Restaurant::averagePrice).reversed())
+        restaurants.values().stream()
+                .sorted(Comparator.comparingDouble(Restaurant::averageOrderPrice).thenComparing(Restaurant::getId).reversed())
                 .forEach(System.out::println);
     }
 
     public void printDeliveryPeople() {
-        deliveryPersonList.stream()
-                .sorted(Comparator.comparing(DeliveryPerson::getEarning).reversed())
+        deliveryPeople.values().stream()
+                .sorted(Comparator.comparingDouble(DeliveryPerson::getEarnings).thenComparing(DeliveryPerson::getId).reversed())
                 .forEach(System.out::println);
-    }
-}
-
-class Address {
-    private String name;
-    private Location location;
-
-    public Address(String name, Location location) {
-        this.name = name;
-        this.location = location;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Location getLocation() {
-        return location;
     }
 }
 
@@ -376,4 +261,3 @@ public class DeliveryAppTester {
         }
     }
 }
-
