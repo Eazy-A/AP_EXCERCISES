@@ -1,17 +1,17 @@
 package e14;
 
-import javax.swing.plaf.PanelUI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class InvalidPositionException extends Exception{
+class InvalidPositionException extends Exception {
     public InvalidPositionException(int position) {
-        super("Invalid position " + position + ", alredy taken!" ); // hahahahhaha
+        super("Invalid position " + position + ", alredy taken!"); // hahahahhaha
     }
 }
+
 class Component {
     private String color;
-    private int weight;
+    private final int weight;
     private List<Component> componentList = new ArrayList<>();
 
     public Component(String color, int weight) {
@@ -19,7 +19,7 @@ class Component {
         this.weight = weight;
     }
 
-    public void addComponent(Component component){
+    public void addComponent(Component component) {
         componentList.add(component);
         componentList = componentList.stream()
                 .sorted(Comparator.comparingInt(Component::getWeight).thenComparing(Component::getColor))
@@ -34,35 +34,36 @@ class Component {
         return weight;
     }
 
-    public void setColor(String color) {
-        this.color = color;
-    }
-    public void recursiveChangeColor(int weight, String color){
-        if(this.weight < weight){
+
+    public void recursiveChangeColor(int weight, String color) {
+        if (this.weight < weight) {
             this.color = color;
         }
-        for (Component child : componentList){
+        for (Component child : componentList) {
             child.recursiveChangeColor(weight, color);
         }
     }
-    public String printFormatter(int level){
+
+    public String printFormatter(int level) {
         StringBuilder sb = new StringBuilder();
         String dashes = "---".repeat(level);
 
         sb.append(dashes).append(String.format("%d:%s\n", weight, color));
-        for (Component child : componentList){
-            sb.append(child.printFormatter(level+1));
+        for (Component child : componentList) {
+            sb.append(child.printFormatter(level + 1));
         }
         return sb.toString();
     }
+
     @Override
     public String toString() {
         return weight + ":" + color;
     }
 }
-class Window{
-    private String name;
-    private Map<Integer,Component> componentMap = new TreeMap<>();
+
+class Window {
+    private final String name;
+    private final Map<Integer, Component> componentMap = new TreeMap<>();
 
     public Window(String name) {
         this.name = name;
@@ -73,7 +74,7 @@ class Window{
         componentMap.put(position, component);
     }
 
-    public void switchComponents(int pos1, int pos2){
+    public void switchComponents(int pos1, int pos2) {
         Component fistComponent = componentMap.get(pos1);
         Component secondComponent = componentMap.get(pos2);
 
@@ -82,7 +83,7 @@ class Window{
     }
 
     public void changeColor(int weight, String color) {
-        for (Component component : componentMap.values()){
+        for (Component component : componentMap.values()) {
             component.recursiveChangeColor(weight, color);
         }
     }
@@ -93,7 +94,7 @@ class Window{
 
         sb.append("WINDOW ").append(name).append("\n");
 
-        for (Map.Entry<Integer, Component> entry : componentMap.entrySet()){
+        for (Map.Entry<Integer, Component> entry : componentMap.entrySet()) {
             int position = entry.getKey();
             Component component = entry.getValue();
             sb.append(position).append(":");
@@ -102,6 +103,7 @@ class Window{
         return sb.toString();
     }
 }
+
 public class ComponentTest {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
