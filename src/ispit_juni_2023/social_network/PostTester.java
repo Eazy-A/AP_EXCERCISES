@@ -2,20 +2,18 @@ package ispit_juni_2023.social_network;
 
 import java.util.*;
 
-interface Ipost {
+
+interface IReply {
     void addComment(String username, String commentId, String content, String replyToId);
-    void print(int indent);
-    String getId();
     void likeComment(String commentId);
+    String print(int indent);
+    int totalLikes();
 }
 
-class Comment implements Ipost {
-    private String username;
-    private String commentId;
-    private String content;
-    private String replyToId;
+class Comment implements IReply{
+    private final String username, commentId, content, replyToId;
+    private final Map<String, IReply> replies = new LinkedHashMap<>();
     private int likes = 0;
-    private List<Ipost> replies = new ArrayList<>();
 
     public Comment(String username, String commentId, String content, String replyToId) {
         this.username = username;
@@ -24,108 +22,104 @@ class Comment implements Ipost {
         this.replyToId = replyToId;
     }
 
-
     @Override
     public void addComment(String username, String commentId, String content, String replyToId) {
-        if (this.commentId.equals(replyToId)) {
-            replies.add(new Comment(username, commentId, content, replyToId));
+        if (replyToId.equals(this.commentId)){
+            replies.put(commentId, new Comment(username, commentId, content, replyToId));
         }else{
-            for (Ipost reply : replies){
+            for (IReply reply : replies.values()) {
                 reply.addComment(username, commentId, content, replyToId);
             }
         }
     }
 
     @Override
-    public void print(int indent) {
-        String space = "    ".repeat(indent);
-        System.out.printf("%sComment: %s\n Written by: %s\n Likes: %d\n", space, content, username, likes);
-        for (Ipost reply : replies){
-            reply.print(indent + 1);
-        }
-    }
-
-    @Override
-    public String getId() {
-        return commentId;
-    }
-
-    @Override
-    public void likeComment(String targetId) {
-        if (this.commentId.equals(targetId)) {
-            this.likes++;
-        } else {
-            for (Ipost reply : replies) {
-                reply.likeComment(targetId);
+    public void likeComment(String commentId) {
+        if (this.commentId.equals(commentId)){
+            likes++;
+        }else{
+            for (IReply reply : replies.values()) {
+                reply.likeComment(commentId);
             }
         }
     }
-    @Override
-    public String toString() {
-        return String.format("Comment: %s Written by: %s Likes: %d", content, username, likes);
-    }
 
-    public String formatComment(int indent) {
+
+    @Override
+    public String print(int indent) {
         StringBuilder sb = new StringBuilder();
         String space = "    ".repeat(indent);
-        sb.append(String.format("%sComment: %s\n%sWritten by: %s\n%sLikes: %d\n", space, content,space, username,space, likes));
-        for (Ipost reply : replies) {
-            sb.append(((Comment)reply).formatComment(indent + 1));
-        }
+        sb.append(space).append("Comment: ").append(content).append("\n");
+        sb.append(space).append("Written by: ").append(username).append("\n");
+        sb.append(space).append("Likes: ").append(likes).append("\n");
+
+        replies.values().stream()
+                .sorted(Comparator.comparingInt(IReply::totalLikes).reversed())
+                .forEach(r -> sb.append(r.print(indent+1)));
         return sb.toString();
     }
 
-
+    @Override
+    public int totalLikes() {
+        int sum = likes;
+        for (IReply reply : replies.values()) {
+            sum += reply.totalLikes();
+        }
+        return sum;
+    }
 }
 
-class Post implements Ipost {
-    private String username;
-    private String postContent;
-    private List<Ipost> replies = new ArrayList<>();
+class Post implements IReply{
+    private final String username, postContent;
+    private final Map<String, IReply> replies = new LinkedHashMap<>();
+
     public Post(String username, String postContent) {
-        this.username = username;
+        this.username =  username;
         this.postContent = postContent;
     }
-
+    @Override
     public void addComment(String username, String commentId, String content, String replyToId) {
-        if (replyToId == null || replyToId.isEmpty()) {
-            replies.add(new Comment(username, commentId, content, replyToId));
-        } else {
-            for (Ipost reply : replies) {
+        if (replyToId == null || replyToId.isEmpty()){
+            replies.put(commentId, new Comment(username, commentId, content, replyToId));
+        }else{
+            for (IReply reply : replies.values()) {
                 reply.addComment(username, commentId, content, replyToId);
             }
         }
     }
-
     @Override
-    public void print(int indent) {
-        System.out.printf("Post: %s\nWritten by: %s\nComments:\n", postContent, username);
-        for (Ipost reply : replies) {
-            reply.print(1);
+    public void likeComment(String commentId) {
+        for (IReply reply : replies.values()) {
+            reply.likeComment(commentId);
         }
     }
 
     @Override
-    public String getId() {
-        return "";
+    public String print(int indent) {
+        StringBuilder sb = new StringBuilder();
+       sb.append("Post: ").append(postContent).append("\n");
+        sb.append("Written by: ").append(username).append("\n");
+        sb.append("Comments: ").append("\n");
+
+        replies.values().stream()
+                .sorted(Comparator.comparingInt(IReply::totalLikes).reversed())
+                .forEach(r -> sb.append(r.print(indent+1)));
+        return sb.toString();
     }
 
     @Override
-    public void likeComment(String targetId) {
-        for (Ipost r : replies) {
-            r.likeComment(targetId);
-        }
+    public int totalLikes() {
+        return replies.values()
+                .stream()
+                .mapToInt(IReply::totalLikes)
+                .sum();
     }
+
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Post: %s\nWritten by: %s\nComments:\n", postContent, username));
-        for (Ipost reply : replies) {
-            sb.append(((Comment)reply).formatComment(1));
-        }
-        return sb.toString().trim();
+        return print(1);
     }
-
 }
 
 public class PostTester {
