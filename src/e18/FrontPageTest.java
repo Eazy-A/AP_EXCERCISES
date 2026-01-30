@@ -15,7 +15,7 @@ class CategoryNotFoundException extends Exception {
 }
 
 class Category {
-    private String name;
+    private final String name;
 
     public Category(String name) {
         this.name = name;
@@ -62,7 +62,7 @@ abstract class NewsItem implements INewsItem {
 }
 
 class TextNewsItem extends NewsItem {
-    private String text;
+    private final String text;
 
     public TextNewsItem(String title, LocalDateTime date, Category category, String text) {
         super(title, date, category);
@@ -90,8 +90,8 @@ class TextNewsItem extends NewsItem {
 }
 
 class MediaNewsItem extends NewsItem {
-    private String url;
-    private int views;
+    private final String url;
+    private final int views;
 
     public MediaNewsItem(String title, LocalDateTime date, Category category, String url, int views) {
         super(title, date, category);
@@ -113,8 +113,8 @@ class MediaNewsItem extends NewsItem {
 }
 
 class FrontPage {
-    private Category[] categories;
-    private List<NewsItem> newsList = new ArrayList<>();
+    private final Category[] categories;
+    private final List<NewsItem> newsList = new ArrayList<>();
 
     public FrontPage(Category[] categories) {
         this.categories = categories;
