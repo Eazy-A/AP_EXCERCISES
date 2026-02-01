@@ -47,7 +47,7 @@ class Timestamp<T> implements Comparable<Timestamp<?>>{
 }
 
 class Scheduler<T> {
-    private List<Timestamp<T>> events;
+    private final List<Timestamp<T>> events;
 
     Scheduler() {
         events = new ArrayList<>();

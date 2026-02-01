@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 class TermFrequency {
 
-    private Map<String, Integer> frequencies = new HashMap<>();
+    private final Map<String, Integer> frequencies = new HashMap<>();
 
     public TermFrequency(InputStream inputStream, String[] stopWords) throws IOException {
         Set<String> stopSet = new HashSet<>(Arrays.asList(stopWords));

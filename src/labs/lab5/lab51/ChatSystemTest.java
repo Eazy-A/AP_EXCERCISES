@@ -17,8 +17,8 @@ class NoSuchUserException extends Exception {
 }
 
 class ChatRoom {
-    private String name;
-    private Set<String> users;
+    private final String name;
+    private final Set<String> users;
 
     public ChatRoom(String name) {
         this.name = name;

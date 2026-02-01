@@ -72,7 +72,7 @@ class TriviaQuestion {
 
 class TriviaData {
 
-    private ArrayList<TriviaQuestion> data = new ArrayList<>();
+    private final ArrayList<TriviaQuestion> data = new ArrayList<>();
 
 
     public void addQuestion(String q, String a, int v, QuestionStrategy s) {
@@ -90,7 +90,7 @@ class TriviaData {
 
 public class TriviaGame {
 
-    private TriviaData triviaData;
+    private final TriviaData triviaData;
 
     public TriviaGame() {
         triviaData = new TriviaData();

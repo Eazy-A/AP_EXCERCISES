@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 class Student {
-    private String id;
-    private List<Integer> grades;
+    private final String id;
+    private final List<Integer> grades;
 
     public Student(String id, List<Integer> grades) {
         this.id = id;
@@ -44,7 +44,7 @@ class StudentWithIdAlreadyExistsException extends Exception {
 }
 
 class Faculty {
-    private Map<String, Student> students = new HashMap<>();
+    private final Map<String, Student> students = new HashMap<>();
 
     public void addStudent(String id, List<Integer> grades) throws StudentWithIdAlreadyExistsException {
         if (students.containsKey(id)) {

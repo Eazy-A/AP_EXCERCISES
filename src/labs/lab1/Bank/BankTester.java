@@ -6,10 +6,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 class Account {
-    private String name;
-    private long ID;
+    private final String name;
+    private final long ID;
     private double balance;
-    private static Random randomGenerator = new Random();
+    private final static Random randomGenerator = new Random();
 //    private static long nextID = 1;
 
     public Account(String name, double balance) {
@@ -56,8 +56,8 @@ class Account {
 
 class Bank {
 
-    private String name;
-    private Account[] accounts;
+    private final String name;
+    private final Account[] accounts;
     private double totalTransferred = 0;
     private double totalProvision = 0;
 
@@ -119,8 +119,8 @@ class Bank {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Name: %s%n%n", name));
 
-        for (int i = 0; i < accounts.length; i++) {
-            sb.append(accounts[i].toString());
+        for (Account account : accounts) {
+            sb.append(account.toString());
         }
 
         return sb.toString();
@@ -190,7 +190,7 @@ abstract class Transaction {
 
 class FlatAmountProvisionTransaction extends Transaction {
 
-    private double flatProvision;
+    private final double flatProvision;
 
     public FlatAmountProvisionTransaction(long fromId, long toId, double amount, double flatProvision) {
         super(fromId, toId, "FlatAmount", amount);
@@ -204,9 +204,8 @@ class FlatAmountProvisionTransaction extends Transaction {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof FlatAmountProvisionTransaction)) return false;
+        if (!(o instanceof FlatAmountProvisionTransaction that)) return false;
         if (!super.equals(o)) return false;
-        FlatAmountProvisionTransaction that = (FlatAmountProvisionTransaction) o;
         return Double.compare(that.flatProvision, flatProvision) == 0;
     }
 
@@ -233,9 +232,8 @@ class FlatPercentProvisionTransaction extends Transaction {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof FlatPercentProvisionTransaction)) return false;
+        if (!(o instanceof FlatPercentProvisionTransaction that)) return false;
         if (!super.equals(o)) return false;
-        FlatPercentProvisionTransaction that = (FlatPercentProvisionTransaction) o;
         return centsPerDolar == that.centsPerDolar;
     }
 

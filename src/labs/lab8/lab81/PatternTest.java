@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Song {
-    private String title;
-    private String artist;
+    private final String title;
+    private final String artist;
 
     public Song(String title, String artist) {
         this.title = title;
@@ -29,7 +29,7 @@ interface State {
 }
 
 class MP3Player {
-    private List<Song> songs;
+    private final List<Song> songs;
     private int currentIndex = 0;
     private State currentState;
 
@@ -98,7 +98,7 @@ class MP3Player {
 }
 
 class PlayingState implements State {
-    private MP3Player player;
+    private final MP3Player player;
 
     public PlayingState(MP3Player player) {
         this.player = player;
@@ -127,7 +127,7 @@ class PlayingState implements State {
 }
 
 class PausedState implements State {
-    private MP3Player player;
+    private final MP3Player player;
     private boolean isInitialOrStopped = true;
 
     public PausedState(MP3Player player) {

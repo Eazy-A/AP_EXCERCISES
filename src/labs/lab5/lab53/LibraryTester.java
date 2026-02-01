@@ -7,10 +7,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 class Book {
-    private String isbn;
-    private String title;
-    private int year;
-    private String author;
+    private final String isbn;
+    private final String title;
+    private final int year;
+    private final String author;
     private int numCopies;
     private int totalBorrows;
 
@@ -56,8 +56,8 @@ class Book {
 }
 
 class Member {
-    private String id;
-    private String name;
+    private final String id;
+    private final String name;
     private int totalBorrows;
 
     public Member(String id, String name) {

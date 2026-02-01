@@ -21,8 +21,8 @@ interface MailingList {
 }
 
 class SimpleMailingList implements MailingList {
-    private String listName;
-    private CopyOnWriteArrayList<User> subscribers = new CopyOnWriteArrayList<>();
+    private final String listName;
+    private final CopyOnWriteArrayList<User> subscribers = new CopyOnWriteArrayList<>();
 
     public SimpleMailingList(String listName) {
         this.listName = listName;
@@ -47,8 +47,8 @@ class SimpleMailingList implements MailingList {
 }
 
 class MailingListUser implements User {
-    private String name;
-    private String email;
+    private final String name;
+    private final String email;
 
     public MailingListUser(String name, String email) {
         this.name = name;
@@ -63,9 +63,9 @@ class MailingListUser implements User {
 }
 
 class FilteredMailingListUser implements User {
-    private String name;
-    private String email;
-    private String keyword;
+    private final String name;
+    private final String email;
+    private final String keyword;
 
     public FilteredMailingListUser(String name, String email, String keyword) {
             this.name = name;

@@ -11,9 +11,9 @@ interface XMLComponent {
 
 // leaf (the basic element)
 class XMLLeaf implements XMLComponent {
-    private String tag;
-    private String text;
-    private Map<String, String> attributes = new LinkedHashMap<>();
+    private final String tag;
+    private final String text;
+    private final Map<String, String> attributes = new LinkedHashMap<>();
 
     public XMLLeaf(String tag, String text) {
         this.tag = tag;

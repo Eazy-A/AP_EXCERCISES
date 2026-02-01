@@ -6,11 +6,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 class Course {
-    private String code;
-    private String name;
-    private int credits;
-    private int difficulty;
-    private int enrolledStudents;
+    private final String code;
+    private final String name;
+    private final int credits;
+    private final int difficulty;
+    private final int enrolledStudents;
 
     public Course(String code, String name, int credits, int difficulty, int enrolledStudents) {
         this.code = code;
@@ -73,7 +73,7 @@ class Department {
 
 class University {
 
-    private List<Department> departments;
+    private final List<Department> departments;
 
     public University(List<Department> departments) {
         this.departments = departments;

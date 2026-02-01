@@ -11,8 +11,8 @@ interface Document {
 
 // concrete component
 class PlainText implements Document {
-    private String id;
-    private String text;
+    private final String id;
+    private final String text;
 
     public PlainText(String id, String text) {
         this.id = id;
@@ -91,7 +91,7 @@ class WordCountDecorator extends DocumentDecorator {
 }
 
 class RedactionDecorator extends DocumentDecorator {
-    private List<String> forbiddenWords;
+    private final List<String> forbiddenWords;
 
     public RedactionDecorator(Document decoratedDocument, List<String> forbiddenWords) {
         super(decoratedDocument);
@@ -114,7 +114,7 @@ class RedactionDecorator extends DocumentDecorator {
 }
 
 class DocumentViewer {
-    private List<Document> documents;
+    private final List<Document> documents;
 
     public DocumentViewer() {
         documents = new ArrayList<>();
