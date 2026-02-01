@@ -19,7 +19,6 @@ class XMLLeaf implements XMLComponent {
         this.tag = tag;
         this.text = text;
     }
-
     @Override
     public void addAttribute(String type, String value) {
         attributes.put(type, value);

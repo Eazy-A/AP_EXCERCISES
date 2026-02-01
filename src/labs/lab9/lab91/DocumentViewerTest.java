@@ -1,20 +1,17 @@
 package labs.lab9.lab91;
 
-
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
-// component
 interface Document {
     String getText();
-    String getId();
 }
 
-// concrete component
-class PlainText implements Document {
+class SimpleDocument implements Document {
     private final String id;
     private final String text;
 
-    public PlainText(String id, String text) {
+    public SimpleDocument(String id, String text) {
         this.id = id;
         this.text = text;
     }
@@ -23,69 +20,51 @@ class PlainText implements Document {
     public String getText() {
         return text;
     }
-
-    public String getId() {
-        return id;
-    }
 }
 
-// base decorator
 abstract class DocumentDecorator implements Document {
-    Document decoratedDocument;
+    protected Document document;
 
-    public DocumentDecorator(Document decoratedDocument) {
-        this.decoratedDocument = decoratedDocument;
+    public DocumentDecorator(Document document) {
+        if (document == null){
+            throw new IllegalArgumentException("Wrapped object cannot be null");
+        }
+        this.document = document;
     }
-
 
     @Override
     public String getText() {
-        return decoratedDocument.getText();
-    }
-
-
-    @Override
-    public String getId() {
-        return decoratedDocument.getId();
+        return document.getText();
     }
 }
 
-// concrete decorator
-class LineNumberDecorator extends DocumentDecorator {
-    public LineNumberDecorator(Document decoratedDocument) {
-        super(decoratedDocument);
+class LineNumbersDecorator extends DocumentDecorator {
+
+    public LineNumbersDecorator(Document document) {
+        super(document);
     }
 
     @Override
     public String getText() {
-        String[] lines = decoratedDocument.getText().split("\n");
         StringBuilder sb = new StringBuilder();
+        AtomicInteger count = new AtomicInteger(1);
+        String[] lines = super.getText().split("\n");
+        Arrays.stream(lines).forEach(line -> sb.append(count.getAndIncrement()).append(": ").append(line).append("\n"));
 
-        for (int i = 0; i < lines.length; i++) {
-            sb.append(i + 1).append(": ").append(lines[i]).append("\n");
-        }
         return sb.toString();
     }
 }
 
 class WordCountDecorator extends DocumentDecorator {
-    public WordCountDecorator(Document decoratedDocument) {
-        super(decoratedDocument);
+    public WordCountDecorator(Document document) {
+        super(document);
     }
 
     @Override
     public String getText() {
-        String[] lines = decoratedDocument.getText().split("\n");
         StringBuilder sb = new StringBuilder();
-
-        int wordCount = 0;
-        for (String line : lines) {
-            sb.append(line).append("\n");
-            wordCount += line.split("\\s+").length;
-        }
-
-        sb.append("Words: ").append(wordCount).append("\n");
-
+        String[] words = super.getText().split("\\s++");
+        sb.append(super.getText()).append("Words: ").append(words.length);
         return sb.toString();
     }
 }
@@ -93,75 +72,51 @@ class WordCountDecorator extends DocumentDecorator {
 class RedactionDecorator extends DocumentDecorator {
     private final List<String> forbiddenWords;
 
-    public RedactionDecorator(Document decoratedDocument, List<String> forbiddenWords) {
-        super(decoratedDocument);
+    public RedactionDecorator(Document document, List<String> forbiddenWords) {
+        super(document);
         this.forbiddenWords = forbiddenWords;
     }
 
     @Override
     public String getText() {
-        String text = decoratedDocument.getText();
-
-        for (String word : forbiddenWords) {
-            // (?i) is the regex flag for case-insensitive
-//          String regex = "(?i)" + word;  valid but the task wants literals
-
-            String regex = "(?i)\\b\\Q" + word + "\\E\\b";
-            text = text.replaceAll(regex, "*");
+        String text = super.getText();
+        for (String forbiddenWord : forbiddenWords) {
+            text = text.replaceAll("(?i)" + forbiddenWord, "*");
         }
         return text;
     }
 }
 
 class DocumentViewer {
-    private final List<Document> documents;
+    private final Map<String, Document> documents = new HashMap<>();
+
 
     public DocumentViewer() {
-        documents = new ArrayList<>();
     }
 
     public void addDocument(String id, String text) {
-        documents.add(new PlainText(id, text));
+        documents.put(id, new SimpleDocument(id, text));
     }
 
     public void enableLineNumbers(String id) {
-        for (int i = 0; i < documents.size(); i++) {
-            Document d = documents.get(i);
-            if (d.getId().equals(id)) {
-                documents.set(i, new LineNumberDecorator(d));
-                break;
-            }
-        }
+        documents.compute(id, (k, document) -> {
+            if (document == null) return null;
+            return new LineNumbersDecorator(document);
+        });
+
     }
 
     public void enableWordCount(String id) {
-        for (int i = 0; i < documents.size(); i++) {
-            Document d = documents.get(i);
-            if (d.getId().equals(id)) {
-                documents.set(i, new WordCountDecorator(d));
-                break;
-            }
-        }
+        documents.compute(id, (k, document) -> new WordCountDecorator(document));
     }
 
     public void enableRedaction(String id, List<String> forbiddenWords) {
-        for (int i = 0; i < documents.size(); i++) {
-            Document d = documents.get(i);
-            if (d.getId().equals(id)) {
-                documents.set(i, new RedactionDecorator(d, forbiddenWords));
-                break;
-            }
-        }
+        documents.compute(id, (k, document) -> new RedactionDecorator(document, forbiddenWords));
     }
 
     public void display(String id) {
-        System.out.println("=== Document " + id + " ===");
-        for (Document d : documents) {
-            if (d.getId().equals(id)) {
-                System.out.print(d.getText());
-                break;
-            }
-        }
+        System.out.println("=== Document "+ id +" ===");
+        System.out.println(documents.get(id).getText());
     }
 }
 
