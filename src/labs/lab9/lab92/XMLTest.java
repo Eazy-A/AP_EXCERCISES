@@ -2,70 +2,72 @@ package labs.lab9.lab92;
 
 import java.util.*;
 
-// component (interface/abstract class)
 interface XMLComponent {
-    void addAttribute(String type, String value);
+    void addAttribute(String attribute, String value);
 
     void print(int indent);
 }
 
-// leaf (the basic element)
 class XMLLeaf implements XMLComponent {
     private final String tag;
-    private final String text;
+    private final String value;
     private final Map<String, String> attributes = new LinkedHashMap<>();
 
-    public XMLLeaf(String tag, String text) {
+    public XMLLeaf(String tag, String value) {
         this.tag = tag;
-        this.text = text;
+        this.value = value;
     }
+
     @Override
-    public void addAttribute(String type, String value) {
-        attributes.put(type, value);
+    public void addAttribute(String attribute, String value) {
+        attributes.put(attribute, value);
+    }
+
+    @Override
+    public void print(int indent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("    ".repeat(indent));
+        sb.append("<").append(tag);
+        attributes.forEach((a, v) -> sb.append(String.format(" %s=\"%s\"", a, v)));
+        sb.append(">").append(value);
+        sb.append(String.format("</%s>\n", tag));
+        System.out.print(sb.toString());
+    }
+}
+
+class XMLComposite implements XMLComponent {
+    private final String tag;
+    private final Map<String, String> attributes = new LinkedHashMap<>();
+    private final List<XMLComponent> children = new ArrayList<>();
+
+    public XMLComposite(String tag) {
+        this.tag = tag;
+    }
+
+    @Override
+    public void addAttribute(String attribute, String value) {
+        attributes.put(attribute, value);
     }
 
     @Override
     public void print(int indent) {
         String indentation = "    ".repeat(indent);
-        System.out.print(indentation + "<" + tag);
-        attributes.forEach((k, v) -> System.out.print(" " + k + "=\"" + v + "\""));
-        System.out.println(">" + text + "</" + tag + ">");
-    }
-}
+        StringBuilder sb = new StringBuilder();
 
-// composite (container which stores both leaves and composites)
-class XMLComposite implements XMLComponent {
-    private String tag;
-    private List<XMLComponent> children = new ArrayList<>();
-    private Map<String, String> attributes = new LinkedHashMap<>();
-
-    public XMLComposite(String tag) {
-        this.tag = tag;
+        sb.append(indentation).append("<").append(tag);
+        attributes.forEach((a, v) -> sb.append(String.format(" %s=\"%s\"", a, v)));
+        sb.append(">");
+        System.out.println(sb);
+        for (XMLComponent child : children) {
+            child.print(indent+1);
+        }
+        System.out.println(indentation + String.format("</%s>", tag));
     }
 
     public void addComponent(XMLComponent component) {
         children.add(component);
     }
 
-    @Override
-    public void addAttribute(String type, String value) {
-        attributes.put(type, value);
-    }
-
-    @Override
-    public void print(int indent) {
-        String indentation = "    ".repeat(indent);
-
-        System.out.print(indentation + "<" + tag);
-        attributes.forEach((k, v) -> System.out.print(" " + k + "=\"" + v + "\""));
-        System.out.println(">");
-
-        for (XMLComponent child : children) {
-            child.print(indent + 1);
-        }
-
-        System.out.println(indentation + "</" + tag + ">");
-    }
 }
 
 public class XMLTest {

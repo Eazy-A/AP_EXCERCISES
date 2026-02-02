@@ -1,13 +1,15 @@
 package labs.lab9.lab91;
 
+import javax.swing.text.Document;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
-interface Document {
+interface IDocument {
     String getText();
 }
 
-class SimpleDocument implements Document {
+class SimpleDocument implements IDocument {
     private final String id;
     private final String text;
 
@@ -22,13 +24,10 @@ class SimpleDocument implements Document {
     }
 }
 
-abstract class DocumentDecorator implements Document {
-    protected Document document;
+abstract class DocumentDecorator implements IDocument {
+    private final IDocument document;
 
-    public DocumentDecorator(Document document) {
-        if (document == null){
-            throw new IllegalArgumentException("Wrapped object cannot be null");
-        }
+    public DocumentDecorator(IDocument document) {
         this.document = document;
     }
 
@@ -40,39 +39,38 @@ abstract class DocumentDecorator implements Document {
 
 class LineNumbersDecorator extends DocumentDecorator {
 
-    public LineNumbersDecorator(Document document) {
+    public LineNumbersDecorator(IDocument document) {
         super(document);
     }
 
     @Override
     public String getText() {
         StringBuilder sb = new StringBuilder();
+        String text = super.getText();
         AtomicInteger count = new AtomicInteger(1);
-        String[] lines = super.getText().split("\n");
-        Arrays.stream(lines).forEach(line -> sb.append(count.getAndIncrement()).append(": ").append(line).append("\n"));
-
+        String[] lines = text.split("\n");
+        Arrays.stream(lines).forEach(line -> sb.append(String.format("%s: %s\n", count.getAndIncrement(), line)));
         return sb.toString();
     }
 }
+class WordCountDecorator extends DocumentDecorator{
 
-class WordCountDecorator extends DocumentDecorator {
-    public WordCountDecorator(Document document) {
+    public WordCountDecorator(IDocument document) {
         super(document);
     }
 
     @Override
     public String getText() {
-        StringBuilder sb = new StringBuilder();
-        String[] words = super.getText().split("\\s++");
-        sb.append(super.getText()).append("Words: ").append(words.length);
-        return sb.toString();
+        String text = super.getText();
+        int wordCount = text.split("\\s++").length;
+        return text + "Words: " + wordCount + "\n";
     }
 }
 
-class RedactionDecorator extends DocumentDecorator {
+class RedactionDecorator extends DocumentDecorator{
     private final List<String> forbiddenWords;
 
-    public RedactionDecorator(Document document, List<String> forbiddenWords) {
+    public RedactionDecorator(IDocument document, List<String> forbiddenWords) {
         super(document);
         this.forbiddenWords = forbiddenWords;
     }
@@ -81,42 +79,34 @@ class RedactionDecorator extends DocumentDecorator {
     public String getText() {
         String text = super.getText();
         for (String forbiddenWord : forbiddenWords) {
-            text = text.replaceAll("(?i)" + forbiddenWord, "*");
+            text = text.replaceAll("(?i)\\b" + Pattern.quote(forbiddenWord) + "\\b", "*");
         }
         return text;
     }
 }
-
 class DocumentViewer {
-    private final Map<String, Document> documents = new HashMap<>();
-
-
-    public DocumentViewer() {
-    }
+    private final Map<String, IDocument> documents = new LinkedHashMap<>();
+    public DocumentViewer() {}
 
     public void addDocument(String id, String text) {
         documents.put(id, new SimpleDocument(id, text));
     }
 
     public void enableLineNumbers(String id) {
-        documents.compute(id, (k, document) -> {
-            if (document == null) return null;
-            return new LineNumbersDecorator(document);
-        });
-
+        documents.computeIfPresent(id, (k, doc) -> new LineNumbersDecorator(doc));
     }
 
     public void enableWordCount(String id) {
-        documents.compute(id, (k, document) -> new WordCountDecorator(document));
+        documents.computeIfPresent(id, (k, doc) -> new WordCountDecorator(doc));
     }
 
     public void enableRedaction(String id, List<String> forbiddenWords) {
-        documents.compute(id, (k, document) -> new RedactionDecorator(document, forbiddenWords));
+        documents.computeIfPresent(id, (k, doc) -> new RedactionDecorator(doc, forbiddenWords));
     }
 
     public void display(String id) {
         System.out.println("=== Document "+ id +" ===");
-        System.out.println(documents.get(id).getText());
+        System.out.print(documents.get(id).getText());
     }
 }
 

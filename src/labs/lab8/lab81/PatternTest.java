@@ -3,6 +3,74 @@ package labs.lab8.lab81;
 import java.util.ArrayList;
 import java.util.List;
 
+interface Action {
+    void play(MP3Player player);
+
+    void stop(MP3Player player);
+
+    void fwd(MP3Player player);
+
+    void rew(MP3Player player);
+}
+
+class MP3Player {
+    private List<Song> songs = new ArrayList<>();
+    private Action currentState;
+    private int currentSongIndex;
+
+    public MP3Player(List<Song> songs) {
+        this.songs = songs;
+        this.currentState = new StoppedState();
+        this.currentSongIndex = 0;
+    }
+
+    public void printCurrentSong() {
+        System.out.println(songs.get(currentSongIndex));
+    }
+
+    public void setCurrentState(Action currentState) {
+        this.currentState = currentState;
+    }
+
+    public int getCurrentSongIndex() {
+        return currentSongIndex;
+    }
+
+    public void incrementSongIndex() {
+        currentSongIndex = (currentSongIndex + 1) % songs.size();
+    }
+
+    public void decrementSongIndex() {
+        currentSongIndex = (currentSongIndex - 1 + songs.size()) % songs.size();
+    }
+
+    public void resetIndex() {
+        currentSongIndex = 0;
+    }
+
+    public void pressPlay() {
+        currentState.play(this);
+    }
+
+    public void pressStop() {
+        currentState.stop(this);
+    }
+
+    public void pressFWD() {
+        currentState.fwd(this);
+    }
+
+    public void pressREW() {
+        currentState.rew(this);
+    }
+
+    @Override
+    public String toString() {
+        return "MP3Player{currentSong = " + currentSongIndex +
+                ", songList = " + songs + "}";
+    }
+}
+
 class Song {
     private final String title;
     private final String artist;
@@ -14,150 +82,89 @@ class Song {
 
     @Override
     public String toString() {
-        return "Song{title=" + title + ", artist=" + artist + "}";
+        return "Song{" +
+                "title=" + title +
+                ", artist=" + artist +
+                '}';
     }
 }
 
-interface State {
-    void pressPlay();
-
-    void pressStop();
-
-    void pressFWD();
-
-    void pressREW();
-}
-
-class MP3Player {
-    private final List<Song> songs;
-    private int currentIndex = 0;
-    private State currentState;
-
-    private final State playingState;
-    private final State pausedState;
-
-    public MP3Player(List<Song> songs) {
-        this.songs = songs;
-        this.playingState = new PlayingState(this);
-        this.pausedState = new PausedState(this);
-        this.currentState = pausedState;
-    }
-
-    public void setState(State state) {
-        this.currentState = state;
-    }
-
-    public State getPlayingState() {
-        return playingState;
-    }
-
-    public State getPausedState() {
-        return pausedState;
-    }
-
-    public int getCurrentIndex() {
-        return currentIndex;
-    }
-
-    public void resetIndex() {
-        this.currentIndex = 0;
-    }
-
-    public void next() {
-        this.currentIndex = (currentIndex + 1) % songs.size();
-    }
-
-    public void prev() {
-        this.currentIndex = (currentIndex - 1 + songs.size()) % songs.size();
-    }
-
-    public void pressPlay() {
-        currentState.pressPlay();
-    }
-
-    public void pressStop() {
-        currentState.pressStop();
-    }
-
-    public void pressFWD() {
-        currentState.pressFWD();
-    }
-
-    public void pressREW() {
-        currentState.pressREW();
-    }
-
-    public void printCurrentSong() {
-        System.out.println(songs.get(currentIndex).toString());
+class StoppedState implements Action {
+    @Override
+    public void play(MP3Player player) {
+        player.setCurrentState(new PlayingState());
+        System.out.println("Song " + player.getCurrentSongIndex() + " is playing");
     }
 
     @Override
-    public String toString() {
-        return "MP3Player{currentSong = " + currentIndex + ", songList = " + songs + "}";
+    public void stop(MP3Player player) {
+        System.out.println("Songs are already stopped");
+    }
+
+    @Override
+    public void fwd(MP3Player player) {
+        player.incrementSongIndex();
+        System.out.println("Forward...");
+    }
+
+    @Override
+    public void rew(MP3Player player) {
+        player.decrementSongIndex();
+        System.out.println("Reward...");
     }
 }
 
-class PlayingState implements State {
-    private final MP3Player player;
-
-    public PlayingState(MP3Player player) {
-        this.player = player;
-    }
-
-    public void pressPlay() {
+class PlayingState implements Action {
+    @Override
+    public void play(MP3Player player) {
         System.out.println("Song is already playing");
     }
 
-    public void pressStop() {
-        System.out.println("Song " + player.getCurrentIndex() + " is paused");
-        player.setState(player.getPausedState());
+    @Override
+    public void stop(MP3Player player) {
+        System.out.println("Song " + player.getCurrentSongIndex() + " is paused");
+        player.setCurrentState(new PausedState());
     }
 
-    public void pressFWD() {
+    @Override
+    public void fwd(MP3Player player) {
+        player.incrementSongIndex();
         System.out.println("Forward...");
-        player.next();
-        player.setState(player.getPausedState());
+        player.setCurrentState(new PausedState());
     }
 
-    public void pressREW() {
+    @Override
+    public void rew(MP3Player player) {
+        player.decrementSongIndex();
         System.out.println("Reward...");
-        player.prev();
-        player.setState(player.getPausedState());
+        player.setCurrentState(new PausedState());
     }
 }
 
-class PausedState implements State {
-    private final MP3Player player;
-    private boolean isInitialOrStopped = true;
-
-    public PausedState(MP3Player player) {
-        this.player = player;
+class PausedState implements Action {
+    @Override
+    public void play(MP3Player player) {
+        System.out.println("Song " + player.getCurrentSongIndex() + " is playing");
+        player.setCurrentState(new PlayingState());
     }
 
-    public void pressPlay() {
-        System.out.println("Song " + player.getCurrentIndex() + " is playing");
-        isInitialOrStopped = false;
-        player.setState(player.getPlayingState());
+    @Override
+    public void stop(MP3Player player) {
+        System.out.println("Songs are stopped");
+        player.resetIndex();
+        player.setCurrentState(new StoppedState());
     }
 
-    public void pressStop() {
-        if (isInitialOrStopped) {
-            System.out.println("Songs are already stopped");
-        } else {
-            System.out.println("Songs are stopped");
-            player.resetIndex();
-            isInitialOrStopped = true;
-        }
-    }
-
-    public void pressFWD() {
+    @Override
+    public void fwd(MP3Player player) {
+        player.incrementSongIndex();
         System.out.println("Forward...");
-        player.next();
     }
 
-    public void pressREW() {
+    @Override
+    public void rew(MP3Player player) {
+        player.decrementSongIndex();
         System.out.println("Reward...");
-        player.prev();
     }
 }
 

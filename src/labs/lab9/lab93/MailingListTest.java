@@ -1,49 +1,13 @@
 package labs.lab9.lab93;
 
+import javax.swing.event.ListDataEvent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-// observer interface
 interface User {
     void notify(String mailingListName, String text);
-}
-
-// subject interface
-interface MailingList {
-    void subscribe(User user);
-
-    void unsubscribe(User user);
-
-    void publish(String message);
-}
-
-class SimpleMailingList implements MailingList {
-    private final String listName;
-    private final CopyOnWriteArrayList<User> subscribers = new CopyOnWriteArrayList<>();
-
-    public SimpleMailingList(String listName) {
-        this.listName = listName;
-    }
-
-    @Override
-    public void subscribe(User user) {
-        subscribers.addIfAbsent(user);
-    }
-
-    @Override
-    public void unsubscribe(User user) {
-        subscribers.remove(user);
-    }
-
-    @Override
-    public void publish(String message) {
-        for (User user : subscribers) {
-            user.notify(listName, message);
-        }
-    }
 }
 
 class MailingListUser implements User {
@@ -57,8 +21,7 @@ class MailingListUser implements User {
 
     @Override
     public void notify(String mailingListName, String text) {
-//        [USER] Ana received email from FINKI: New lab exercises are published
-        System.out.printf("[USER] %s received email from %s: %s%n", name, mailingListName, text);
+        System.out.println("[USER] " + name + " received email from " + mailingListName + ": " + text);
     }
 }
 
@@ -68,23 +31,21 @@ class FilteredMailingListUser implements User {
     private final String keyword;
 
     public FilteredMailingListUser(String name, String email, String keyword) {
-            this.name = name;
-            this.email = email;
-            this.keyword = keyword;
+        this.name = name;
+        this.email = email;
+        this.keyword = keyword;
     }
 
     @Override
     public void notify(String mailingListName, String text) {
-//        [FILTERED USER] Bojan received filtered email from FINKI: Exam schedule is available
-        if (text.toLowerCase().contains(keyword)) {
-            System.out.printf("[FILTERED USER] %s received filtered email from %s: %s%n", name, mailingListName, text);
-        }
+        if (text.toLowerCase().contains(keyword.toLowerCase()))
+            System.out.println("[FILTERED USER] " + name + " received filtered email from " + mailingListName + ": " + text);
     }
 }
 
 class AdminUser implements User {
-    private String name;
-    private String email;
+    private final String name;
+    private final String email;
 
     public AdminUser(String name, String email) {
         this.name = name;
@@ -93,11 +54,41 @@ class AdminUser implements User {
 
     @Override
     public void notify(String mailingListName, String text) {
-//        [ADMIN LOG] MailingList=FINKI | Message=New lab exercises are published
-        System.out.printf("[ADMIN LOG] MailingList=%s | Message=%s%n", mailingListName, text);
+        System.out.println("[ADMIN LOG] MailingList=" + mailingListName + " | Message=" + text);
     }
 }
 
+interface MailingList {
+    void subscribe(User user);
+
+    void unsubscribe(User user);
+
+    void publish(String text);
+}
+
+class SimpleMailingList implements MailingList {
+    private final String listName;
+    private final Set<User> users = new LinkedHashSet<>();
+
+    public SimpleMailingList(String listName) {
+        this.listName = listName;
+    }
+
+    @Override
+    public void subscribe(User user) {
+        users.add(user);
+    }
+
+    @Override
+    public void unsubscribe(User user) {
+        users.remove(user);
+    }
+
+    @Override
+    public void publish(String text) {
+        users.forEach(user -> user.notify(listName, text));
+    }
+}
 
 public class MailingListTest {
     public static void main(String[] args) throws Exception {

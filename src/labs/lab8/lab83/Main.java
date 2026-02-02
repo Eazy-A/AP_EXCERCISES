@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 enum ActionType {
@@ -101,7 +100,6 @@ class GameRoom {
             Executors.newSingleThreadExecutor();
 
     public volatile boolean running = true;
-    private long totalTime = 0L;
 
     public GameRoom(String roomId) {
         this.roomId = roomId;
@@ -110,12 +108,12 @@ class GameRoom {
 
     // TODO: Implement startProcessor
     private void startProcessor() {
-        executor.submit(() -> {
-            while (running || !actionQueue.isEmpty()) {
+        // We use the executor to run a single long-running loop
+        executor.execute(() -> {
+            while (running || !actionQueue.isEmpty()) { // Continue until stopped AND queue is empty
                 try {
+                    // poll with timeout to allow checking the 'running' flag periodically
                     PlayerAction action = actionQueue.poll(100, TimeUnit.MILLISECONDS);
-                    totalTime+=action.getProcessingTime();
-
                     if (action != null) {
                         processAction(action);
                     }
@@ -172,26 +170,29 @@ class GameRoom {
                 }
                 break;
         }
-        System.out.println("Action processing time : " + action.getProcessingTime() + " ms");
     }
 
     public void shutdown() {
         // TODO: Add missing logic
         running = false;
         executor.shutdown();
+
         try {
             if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 executor.shutdownNow();
+                System.out.println("Executor did not shut down in time");
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+
         System.out.println("[" + roomId + "] FINAL PLAYERS:");
         players.values().forEach(p ->
                 System.out.println("  " + p));
     }
 }
+
 
 class GameServer {
 
@@ -204,9 +205,7 @@ class GameServer {
     private final ExecutorService dispatcher =
             Executors.newSingleThreadExecutor();
 
-    public volatile boolean running = true;
-
-    public AtomicLong singleThreadProcessingTime = new AtomicLong(0);
+    private volatile boolean running = true;
 
     public GameServer() {
         startDispatcher();
@@ -214,24 +213,23 @@ class GameServer {
 
     // TODO: Implement startDispatcher()
     private void startDispatcher() {
-        dispatcher.submit(() -> {
+        dispatcher.execute(() -> {
             while (running || !inputQueue.isEmpty()) {
                 try {
                     RoomAction roomAction = inputQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (roomAction != null) {
+                        // Get existing room or create a new one
                         GameRoom room = rooms.computeIfAbsent(roomAction.roomId, GameRoom::new);
                         room.submitAction(roomAction.action);
-                        System.out.println("Room action time: " + roomAction.action.getProcessingTime() + " ms");
-                        singleThreadProcessingTime.getAndAdd(roomAction.action.getProcessingTime());
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
-
         });
     }
+
 
     public void submit(String roomId, PlayerAction action) {
         inputQueue.offer(new RoomAction(roomId, action));
@@ -242,12 +240,19 @@ class GameServer {
         running = false;
         dispatcher.shutdown();
         try {
-            dispatcher.awaitTermination(5, TimeUnit.SECONDS);
+            if (!dispatcher.awaitTermination(5, TimeUnit.SECONDS)) {
+                dispatcher.shutdownNow(); // Force kill if it's stuck
+            }
         } catch (InterruptedException e) {
             dispatcher.shutdownNow();
+            Thread.currentThread().interrupt();
         }
+
+        // Now tell the rooms to close
         rooms.values().forEach(GameRoom::shutdown);
     }
+
+
 }
 
 
@@ -303,4 +308,3 @@ public class Main {
         System.out.println("Game server stopped.");
     }
 }
-
