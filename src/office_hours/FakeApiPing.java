@@ -1,9 +1,6 @@
-package labs.lab7.lab72;
+package office_hours;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class FakeApiPing {
@@ -47,31 +44,20 @@ public class FakeApiPing {
 
         List<Callable<ApiResult>> tasks = new ArrayList<>();
 
-        Semaphore semaphore = new Semaphore(3);
-
-
         for (int i = 0; i < n; i++) {
             int parameter = sc.nextInt();
 
             // requestId is the loop index
-            int requestId = i + 1;
+            int requestId = i+1;
             //TODO add a Callable that invokes the API get method in the tasks list
-
-            tasks.add(() -> {
-                semaphore.acquire();
-                try {
-                    return Api.get(requestId, parameter);
-                } finally {
-                    semaphore.release();
-                }
-            });
+            tasks.add(() -> Api.get(requestId, parameter));
         }
 
         ExecutorService executor =
                 Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
         List<Future<ApiResult>> futures = new ArrayList<>();
-
+        //TODO submit all callables to the executure and get the Futures
         for (Callable<ApiResult> task : tasks) {
             futures.add(executor.submit(task));
         }
@@ -80,27 +66,19 @@ public class FakeApiPing {
 
         long timeoutMillis = 200;
 
-
-        boolean stopSignal = false;
-
+        //TODO get the ApiResult from all the futures and allow a max timeout of timeoutMillis
         for (int i = 0; i < futures.size(); i++) {
+            Future<ApiResult> future = futures.get(i);
             int requestId = i + 1;
-            if (stopSignal) {
-                // If we already hit a timeout, don't even try .get()
-                results.add(new ApiResult(requestId, false, "FAILED"));
-                continue;
-            }
-            try {
-                // Try to get result within 200ms
-                results.add(futures.get(i).get(timeoutMillis, TimeUnit.MILLISECONDS));
-            } catch (Exception e) {
-                // FIRST TIMEOUT DETECTED
-                stopSignal = true;
-                executor.shutdownNow(); // Kill all threads in the background
-                results.add(new ApiResult(requestId, false, "FAILED"));
+
+            try{
+                results.add(future.get(timeoutMillis, TimeUnit.MILLISECONDS));
+            }catch (TimeoutException e){
+                future.cancel(true);
+                results.add(new ApiResult(requestId,false,  "TIMEOUT"));
             }
         }
-
+        executor.shutdown();
 
         // Sorting by requestId
         results.sort(Comparator.comparingInt(r -> r.requestId));

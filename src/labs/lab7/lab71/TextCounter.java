@@ -1,13 +1,6 @@
 package labs.lab7.lab71;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class TextCounter {
 
@@ -41,17 +34,13 @@ public class TextCounter {
 
     public static Callable<Counter> getTextCounter(int textId, String text) {
         return () -> {
-            int lines = text.isEmpty() ? 0 : text.split("\n", -1).length;
-
-            String trimmed = text.trim();
-
-            int words = trimmed.isEmpty() ? 0 : trimmed.split("\\s+").length;
-
+            int lines = text.split("\n").length;
+            int words = text.split("\\s++").length;
             int chars = text.length();
-
             return new Counter(textId, lines, words, chars);
         };
     }
+
 
 
     public static void main(String[] args) throws Exception {
@@ -77,8 +66,7 @@ public class TextCounter {
                 }
             }
             //TODO add a Callable<Counter> for each text read in the tasks list
-            Callable<Counter> task = getTextCounter(textId, text.toString());
-            tasks.add(task);
+            tasks.add(getTextCounter(textId, text.toString()));
         }
 
         ExecutorService executor =
@@ -91,29 +79,11 @@ public class TextCounter {
         List<Counter> results = new ArrayList<>();
 
         //TODO extract results from the List<Future>
-        for (Future<Counter> f : futures) {
-            results.add(f.get());
+        for (Future<Counter> future : futures) {
+            results.add(future.get());
         }
-
-        Callable<Counter> aggregatorTask = () -> {
-            int totalLines = 0;
-            int totalWords = 0;
-            int totalCharacters = 0;
-
-            for (Counter c : results) {
-                totalLines += c.lines;
-                totalWords += c.words;
-                totalCharacters += c.chars;
-            }
-
-            return new Counter(-1, totalLines, totalWords, totalCharacters);
-        };
-
-        Future<Counter> aggregateFuture = executor.submit(aggregatorTask);
-
-        Counter finalResult = aggregateFuture.get();
-
         executor.shutdown();
+
 
         // Sorting by textId (important concept!)
         results.sort(Comparator.comparingInt(c -> c.textId));
@@ -125,6 +95,5 @@ public class TextCounter {
                     c.textId, c.lines, c.words, c.chars
             );
         }
-        System.out.println("Total: " + finalResult);
     }
 }
