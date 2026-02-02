@@ -1,54 +1,50 @@
 package labs.lab7.lab73;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.*;
 
 public class BankBalance {
 
     // Shared bank account
     public static class BankAccount {
         private int balance;
-
-        private final ReentrantLock lock = new ReentrantLock();
-
+        private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
         public BankAccount(int initialBalance) {
             this.balance = initialBalance;
         }
 
-        public boolean deposit(int amount) throws InterruptedException {
-            if(lock.tryLock(100, TimeUnit.MILLISECONDS)) {
-                try {
-                    balance += amount;
-                    return true;
-                } finally {
-                    lock.unlock(); // give the key back
-                }
+        public boolean deposit(int amount) {
+            lock.writeLock().lock();
+            try {
+                balance += amount;
+                return true;
+            } finally {
+                lock.writeLock().unlock();
             }
-            return false;
         }
 
-        public boolean withdraw(int amount) throws InterruptedException {
-            if(lock.tryLock(100, TimeUnit.MILLISECONDS)) {
-                try {
-                    if (balance >= amount) {
-                        balance -= amount;
-                        return true;
-                    }
-                    return false;
-                } finally {
-                    lock.unlock();
+        public boolean withdraw(int amount) {
+            lock.writeLock().lock();
+            try {
+                if (balance >= amount) {
+                    balance -= amount;
+                    return true;
                 }
+                return false;
+            } finally {
+                lock.writeLock().unlock();
             }
-            return false;
         }
 
         public int getBalance() {
-            return balance;
+            lock.readLock().lock();
+            try {
+                return balance;
+            } finally {
+                lock.readLock().unlock();
+            }
         }
     }
 
@@ -74,7 +70,7 @@ public class BankBalance {
 
         List<Callable<OperationResult>> tasks = new ArrayList<>();
 
-        long lockTimeoutMs = 100; // hardcoded in lines 21 and 33
+        long lockTimeoutMs = 100; // max time to wait for the lock
 
         for (int i = 0; i < n; i++) {
             String type = sc.next();
@@ -104,15 +100,6 @@ public class BankBalance {
         }
 
         executor.shutdown();
-
-        results.sort(Comparator.comparingInt(r -> r.operationId));
-
-        for (OperationResult res : results){
-            System.out.printf("Operation %d: %s%n",
-                    res.operationId,
-                    res.success ? "SUCCESS" : "FAILED"
-            );
-        }
 
         // Deterministic final balance
         System.out.println("FINAL_BALANCE " + account.getBalance());

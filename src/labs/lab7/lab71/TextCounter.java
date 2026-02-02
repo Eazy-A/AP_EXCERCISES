@@ -84,6 +84,20 @@ public class TextCounter {
         }
         executor.shutdown();
 
+        Callable<Counter> aggregationTask = () ->{
+            int totalLines = 0;
+            int totalWords = 0;
+            int totalChars = 0;
+            for (Counter result : results) {
+                totalLines += result.lines;
+                totalWords += result.words;
+                totalChars += result.chars;
+            }
+            return new Counter(-1, totalLines, totalWords, totalChars);
+        };
+
+        Future<Counter> totalFuture = executor.submit(aggregationTask);
+        Counter totalResult  = totalFuture.get();
 
         // Sorting by textId (important concept!)
         results.sort(Comparator.comparingInt(c -> c.textId));

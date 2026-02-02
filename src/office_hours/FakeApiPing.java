@@ -78,8 +78,8 @@ public class FakeApiPing {
                 results.add(new ApiResult(requestId,false,  "TIMEOUT"));
             }
         }
-        executor.shutdown();
 
+        executor.shutdown();
         // Sorting by requestId
         results.sort(Comparator.comparingInt(r -> r.requestId));
 
